@@ -1,8 +1,8 @@
 import { IsUrl, Length } from 'class-validator';
-import { Offer } from 'src/offers/entities/offer.entity';
 import { Content } from 'src/types';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/resources/users/entities/user.entity';
 import { Column, JoinColumn, ManyToOne, Entity, OneToMany } from 'typeorm';
+import { Offer } from 'src/resources/offers/entities/offer.entity';
 @Entity()
 export class Wish extends Content {
   @Column()

@@ -1,7 +1,7 @@
 import { Content } from 'src/types';
-import { User } from 'src/users/entities/user.entity';
-import { Wish } from 'src/wishes/entities/wish.entity';
+import { User } from 'src/resources/users/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
+import { Wish } from 'src/resources/wishes/entities/wish.entity';
 
 @Entity()
 export class Offer extends Content {
