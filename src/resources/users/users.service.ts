@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { ErrorCodesEnum } from 'src/types/ErrorCodesEnum';
 
 @Injectable()
 export class UsersService {
@@ -26,15 +27,19 @@ export class UsersService {
       await this._usersRepository.save(user);
       return user;
     } catch (error) {
-      if (error.code === '23505') {
+      if (error.code === ErrorCodesEnum.DUPLICATE_KEY) {
         throw new ConflictException(error.detail);
       }
       throw new InternalServerErrorException(error?.message);
     }
   }
 
-  public async findById(id: number): Promise<User> {
-    const user = await this._usersRepository.findOneBy({ id });
+  public async findById(id: number, withPassword = false): Promise<User> {
+    const user = await this._findUserWithOrWithoutPassword(
+      withPassword,
+      id,
+      'id',
+    );
     return user;
   }
 
@@ -42,15 +47,11 @@ export class UsersService {
     username: string,
     withPassword = false,
   ): Promise<User> {
-    const user = withPassword
-      ? await this._usersRepository
-          .createQueryBuilder()
-          .select('user')
-          .from(User, 'user')
-          .where('user.username = :username', { username })
-          .addSelect('user.password')
-          .getOne()
-      : await this._usersRepository.findOneBy({ username });
+    const user = await this._findUserWithOrWithoutPassword(
+      withPassword,
+      username,
+      'username',
+    );
 
     return user;
   }
@@ -61,5 +62,21 @@ export class UsersService {
 
   public remove(id: number) {
     return 'remove';
+  }
+
+  private _findUserWithOrWithoutPassword(
+    withPassword: boolean,
+    value: string | number,
+    columnName: 'username' | 'id',
+  ): Promise<User> {
+    return withPassword
+      ? this._usersRepository
+          .createQueryBuilder()
+          .select('user')
+          .from(User, 'user')
+          .where(`user.${columnName} = :${columnName}`, { [columnName]: value })
+          .addSelect('user.password')
+          .getOne()
+      : this._usersRepository.findOneBy({ [columnName]: value });
   }
 }

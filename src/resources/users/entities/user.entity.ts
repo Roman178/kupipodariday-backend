@@ -1,11 +1,11 @@
 import { Offer } from 'src/resources/offers/entities/offer.entity';
 import { Wish } from 'src/resources/wishes/entities/wish.entity';
 import { Wishlist } from 'src/resources/wishlists/entities/wishlist.entity';
-import { Content } from 'src/types';
+import { CommonEntityFields } from 'src/types/CommonEntityFields';
 import { Entity, Column, OneToMany } from 'typeorm';
 
 @Entity()
-export class User extends Content {
+export class User extends CommonEntityFields {
   @Column({ unique: true })
   public username: string;
 
@@ -19,7 +19,6 @@ export class User extends Content {
   public email: string;
 
   @Column({ select: false })
-  // @Column()
   public password: string;
 
   @OneToMany(() => Wish, (wish) => wish.owner)

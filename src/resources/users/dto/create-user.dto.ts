@@ -6,6 +6,7 @@ import {
   Length,
   MaxLength,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -17,8 +18,9 @@ export class CreateUserDto {
   @MaxLength(200)
   public about: string;
 
-  @IsOptional()
+  // @IsOptional()
   @IsUrl()
+  @ValidateIf((user) => !!user.avatar)
   public avatar: string;
 
   @IsEmail()

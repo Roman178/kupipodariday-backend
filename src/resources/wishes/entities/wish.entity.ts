@@ -1,10 +1,10 @@
 import { IsUrl, Length } from 'class-validator';
-import { Content } from 'src/types';
+import { CommonEntityFields } from 'src/types/CommonEntityFields';
 import { User } from 'src/resources/users/entities/user.entity';
 import { Column, JoinColumn, ManyToOne, Entity, OneToMany } from 'typeorm';
 import { Offer } from 'src/resources/offers/entities/offer.entity';
 @Entity()
-export class Wish extends Content {
+export class Wish extends CommonEntityFields {
   @Column()
   @Length(2, 250)
   public name: string;

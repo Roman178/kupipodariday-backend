@@ -14,19 +14,22 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtGuard } from 'src/auth/jwt.guard';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly _usersService: UsersService) {}
 
-  // @Post()
-  // public create(@Body() createUserDto: CreateUserDto) {
-  //   return this._usersService.create(createUserDto);
-  // }
   @UseGuards(JwtGuard)
   @Get('me')
-  public findMe(@Req() req) {
+  public findMe(@Req() req): Promise<User> {
     return this._usersService.findById(req.user.id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Patch('me')
+  public updateMe(@Req() req) {
+    return this._usersService.findById(req.user.id, true);
   }
 
   @Get(':id')
