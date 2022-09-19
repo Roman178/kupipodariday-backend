@@ -1,36 +1,42 @@
-import { IsUrl, Length } from 'class-validator';
 import { CommonEntityFields } from 'src/types/CommonEntityFields';
 import { User } from 'src/resources/users/entities/user.entity';
 import { Column, JoinColumn, ManyToOne, Entity, OneToMany } from 'typeorm';
 import { Offer } from 'src/resources/offers/entities/offer.entity';
+import { ColumnNumericTransformer } from 'src/helpers/ColumnNumericTransformer';
 @Entity()
 export class Wish extends CommonEntityFields {
   @Column()
-  @Length(2, 250)
   public name: string;
 
   @Column()
-  @IsUrl()
   public link: string;
 
   @Column()
-  @IsUrl()
   public image: string;
 
-  @Column({ scale: 2, type: 'decimal' })
+  @Column({
+    scale: 2,
+    type: 'decimal',
+    transformer: new ColumnNumericTransformer(),
+  })
   public price: number;
 
-  @Column({ scale: 2, type: 'decimal' })
+  @Column({
+    scale: 2,
+    default: 0,
+    nullable: true,
+    transformer: new ColumnNumericTransformer(),
+  })
   public raised: number;
 
   @Column()
-  @Length(1, 1024)
   public description: string;
 
-  @Column({ type: 'int' })
+  @Column({ default: 0, nullable: true })
   public copied: number;
 
   @ManyToOne(() => User, (user) => user.wishes)
+  @JoinColumn()
   public owner: User;
 
   @OneToMany(() => Offer, (offer) => offer.item)

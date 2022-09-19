@@ -2,13 +2,18 @@ import { CommonEntityFields } from 'src/types/CommonEntityFields';
 import { User } from 'src/resources/users/entities/user.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
 import { Wish } from 'src/resources/wishes/entities/wish.entity';
+import { ColumnNumericTransformer } from 'src/helpers/ColumnNumericTransformer';
 
 @Entity()
 export class Offer extends CommonEntityFields {
-  @Column({ scale: 2, type: 'decimal' })
+  @Column({
+    scale: 2,
+    type: 'decimal',
+    transformer: new ColumnNumericTransformer(),
+  })
   public amount: number;
 
-  @Column()
+  @Column({ default: false })
   public hidden: boolean;
 
   @ManyToOne(() => User, (user) => user.offers)

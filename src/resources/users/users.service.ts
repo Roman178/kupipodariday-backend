@@ -10,6 +10,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { ErrorCodesEnum } from 'src/types/ErrorCodesEnum';
+import { FindUsersDto } from './dto/find-users.dto';
 
 @Injectable()
 export class UsersService {
@@ -34,49 +35,79 @@ export class UsersService {
     }
   }
 
-  public async findById(id: number, withPassword = false): Promise<User> {
-    const user = await this._findUserWithOrWithoutPassword(
-      withPassword,
-      id,
-      'id',
-    );
-    return user;
+  public async findById(
+    id: number,
+    {
+      withPassword = false,
+      withEmail = false,
+    }: { withPassword?: boolean; withEmail?: boolean } = {},
+  ): Promise<User> {
+    if (withPassword || withEmail) {
+      return this._findUserAddUnselectedFields(id, 'id', {
+        withEmail,
+        withPassword,
+      });
+    } else {
+      return this._usersRepository.findOneBy({ id });
+    }
   }
 
   public async findByUsername(
     username: string,
-    withPassword = false,
+    {
+      withPassword = false,
+      withEmail = false,
+    }: { withPassword?: boolean; withEmail?: boolean } = {},
   ): Promise<User> {
-    const user = await this._findUserWithOrWithoutPassword(
-      withPassword,
-      username,
-      'username',
-    );
-
-    return user;
+    if (withPassword || withEmail) {
+      return this._findUserAddUnselectedFields(username, 'username', {
+        withEmail,
+        withPassword,
+      });
+    } else {
+      return this._usersRepository.findOneBy({ username });
+    }
   }
 
-  public update(id: number, updateUserDto: UpdateUserDto) {
-    return 'update';
+  public async findMany({ query }: FindUsersDto): Promise<User[]> {
+    const users = await this._usersRepository.find({
+      where: [{ email: query }, { username: query }],
+    });
+    return users;
   }
 
-  public remove(id: number) {
-    return 'remove';
+  public async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
+    return await this._usersRepository.update(id, updateUserDto);
   }
 
-  private _findUserWithOrWithoutPassword(
-    withPassword: boolean,
+  public async updateWithPassword(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<any> {
+    const passwordHash = await bcrypt.hash(updateUserDto.password, 10);
+    return await this._usersRepository.update(id, {
+      ...updateUserDto,
+      password: passwordHash,
+    });
+  }
+
+  private async _findUserAddUnselectedFields(
     value: string | number,
     columnName: 'username' | 'id',
+    options: { withPassword: boolean; withEmail: boolean },
   ): Promise<User> {
-    return withPassword
-      ? this._usersRepository
-          .createQueryBuilder()
-          .select('user')
-          .from(User, 'user')
-          .where(`user.${columnName} = :${columnName}`, { [columnName]: value })
-          .addSelect('user.password')
-          .getOne()
-      : this._usersRepository.findOneBy({ [columnName]: value });
+    let queryBuilder = this._usersRepository
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where(`user.${columnName} = :${columnName}`, { [columnName]: value });
+
+    if (options.withPassword) {
+      queryBuilder = queryBuilder.addSelect('user.password');
+    }
+    if (options.withEmail) {
+      queryBuilder = queryBuilder.addSelect('user.email');
+    }
+    return queryBuilder.getOne();
   }
 }

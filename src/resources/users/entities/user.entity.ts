@@ -15,7 +15,7 @@ export class User extends CommonEntityFields {
   @Column({ default: 'https://i.pravatar.cc/300' })
   public avatar: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, select: false })
   public email: string;
 
   @Column({ select: false })
