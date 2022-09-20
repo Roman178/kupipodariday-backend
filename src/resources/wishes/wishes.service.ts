@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
@@ -13,7 +13,7 @@ export class WishesService {
     private readonly _wishesRepository: Repository<Wish>,
   ) {}
 
-  public async createWish(user: User, createWishDto: CreateWishDto) {
+  public async create(user: User, createWishDto: CreateWishDto) {
     const wish = await this._wishesRepository.save({
       ...createWishDto,
       owner: user,
@@ -25,7 +25,7 @@ export class WishesService {
     const wish = await this._wishesRepository.findOne({
       relations: {
         owner: { wishes: true, wishlists: true, offers: true },
-        offers: true,
+        offers: { user: true },
       },
       where: { id },
     });
@@ -65,7 +65,7 @@ export class WishesService {
     });
   }
 
-  findAll() {
-    return `This action returns all wishes`;
+  public async find(options: FindManyOptions<Wish>): Promise<Wish[]> {
+    return this._wishesRepository.find(options);
   }
 }

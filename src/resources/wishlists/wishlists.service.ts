@@ -1,26 +1,51 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
+import { WishesService } from '../wishes/wishes.service';
 import { CreateWishlistDto } from './dto/create-wishlist.dto';
 import { UpdateWishlistDto } from './dto/update-wishlist.dto';
+import { Wishlist } from './entities/wishlist.entity';
 
 @Injectable()
 export class WishlistsService {
-  create(createWishlistDto: CreateWishlistDto) {
-    return 'This action adds a new wishlist';
+  constructor(
+    @InjectRepository(Wishlist)
+    private readonly _wishlistsRepository: Repository<Wishlist>,
+    private readonly _wishesService: WishesService,
+  ) {}
+
+  public async create(user: User, createWishlistDto: CreateWishlistDto) {
+    const wishes = await this._wishesService.find({
+      where: { id: In(createWishlistDto.itemsId || []) },
+    });
+    const wishlist = this._wishlistsRepository.create({
+      ...createWishlistDto,
+      owner: user,
+      items: wishes,
+    });
+    return this._wishlistsRepository.save(wishlist);
   }
 
-  findAll() {
-    return `This action returns all wishlists`;
+  public async findAll(): Promise<Wishlist[]> {
+    return this._wishlistsRepository.find({ relations: ['items', 'owner'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wishlist`;
+  public async findOne(id: number): Promise<Wishlist> {
+    return this._wishlistsRepository.findOne({
+      where: { id },
+      relations: ['items', 'owner'],
+    });
   }
 
-  update(id: number, updateWishlistDto: UpdateWishlistDto) {
-    return `This action updates a #${id} wishlist`;
+  public async update(
+    id: number,
+    updateWishlistDto: UpdateWishlistDto,
+  ): Promise<any> {
+    return this._wishlistsRepository.update(id, updateWishlistDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} wishlist`;
+  public async remove(id: number): Promise<any> {
+    return this._wishlistsRepository.delete(id);
   }
 }

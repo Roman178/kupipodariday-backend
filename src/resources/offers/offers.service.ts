@@ -1,7 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EmailSenderService } from 'src/email-sender/email-sender.service';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 import { WishesService } from '../wishes/wishes.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
@@ -13,6 +15,8 @@ export class OffersService {
     @InjectRepository(Offer)
     private readonly _offersRepository: Repository<Offer>,
     private readonly _wishesService: WishesService,
+    private readonly _usersService: UsersService,
+    private readonly _emailSenderService: EmailSenderService,
   ) {}
 
   public async createOffer(
@@ -36,22 +40,41 @@ export class OffersService {
       user,
       item: wish,
     });
-    return this._offersRepository.save(offer);
+    const savedOffer = await this._offersRepository.save(offer);
+    const updatedWish = await this._wishesService.findOne(
+      createOfferDto.itemId,
+    );
+    if (updatedWish.raised === updatedWish.price) {
+      const usersWithEmails = await this._usersService.findInIdsWithEmail(
+        updatedWish.offers.map((offer) => offer.user.id),
+      );
+      await this._emailSenderService.sendEmail(
+        updatedWish,
+        usersWithEmails.map((user) => user.email),
+      );
+    }
+    return savedOffer;
   }
 
-  public async findAll() {
+  public async findAll(): Promise<Offer[]> {
     return this._offersRepository.find({ relations: ['item', 'user'] });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} offer`;
+  public async findOne(id: number): Promise<Offer> {
+    return this._offersRepository.findOne({
+      where: { id },
+      relations: ['item', 'user'],
+    });
   }
 
-  update(id: number, updateOfferDto: UpdateOfferDto) {
-    return `This action updates a #${id} offer`;
+  public async update(
+    id: number,
+    updateOfferDto: UpdateOfferDto,
+  ): Promise<any> {
+    return this._offersRepository.update(id, updateOfferDto);
   }
 
-  async remove(id: number) {
+  public async remove(id: number): Promise<any> {
     return this._offersRepository.delete(id);
   }
 }

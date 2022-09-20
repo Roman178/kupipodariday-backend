@@ -76,8 +76,18 @@ export class UsersService {
     return users;
   }
 
+  public async findInIdsWithEmail(ids: number[]): Promise<User[]> {
+    return this._usersRepository
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.id IN (:...ids)', { ids })
+      .addSelect('user.email')
+      .getMany();
+  }
+
   public async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
-    return await this._usersRepository.update(id, updateUserDto);
+    return this._usersRepository.update(id, updateUserDto);
   }
 
   public async updateWithPassword(

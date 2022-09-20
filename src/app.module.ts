@@ -11,6 +11,7 @@ import { WishlistsModule } from './resources/wishlists/wishlists.module';
 import { OffersModule } from './resources/offers/offers.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
+import { EmailSenderModule } from './email-sender/email-sender.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -33,6 +34,8 @@ import configuration from './config/configuration';
     WishlistsModule,
     OffersModule,
     AuthModule,
+    EmailSenderModule,
+    EmailSenderModule,
   ],
   controllers: [AppController],
   providers: [],

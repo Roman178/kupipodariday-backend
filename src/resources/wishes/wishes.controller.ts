@@ -9,7 +9,6 @@ import {
   UseGuards,
   Req,
   NotFoundException,
-  InternalServerErrorException,
   ForbiddenException,
 } from '@nestjs/common';
 import { WishesService } from './wishes.service';
@@ -36,13 +35,16 @@ export class WishesController {
 
   @UseGuards(JwtGuard)
   @Post()
-  public createWish(@Req() req, @Body() createWishDto: CreateWishDto) {
-    return this._wishesService.createWish(req.user, createWishDto);
+  public create(
+    @Req() req,
+    @Body() createWishDto: CreateWishDto,
+  ): Promise<Wish> {
+    return this._wishesService.create(req.user, createWishDto);
   }
 
   @UseGuards(JwtGuard)
   @Get(':id')
-  public async findOne(@Param('id') id: string) {
+  public async findOne(@Param('id') id: string): Promise<Wish> {
     const wish = await this._wishesService.findOne(parseInt(id));
     if (!wish) {
       throw new NotFoundException();
@@ -52,12 +54,12 @@ export class WishesController {
 
   @UseGuards(JwtGuard)
   @Post(':id/copy')
-  public async copyWishToMe(@Req() req, @Param('id') id: string) {
+  public async copyWishToMe(@Req() req, @Param('id') id: string): Promise<any> {
     const wish = await this._wishesService.findOne(parseInt(id));
     await this._wishesService.updateWish(wish.id, { copied: ++wish.copied });
     if (wish.owner.id !== req.user.id) {
       const { name, link, image, price, description } = wish;
-      await this._wishesService.createWish(req.user, {
+      await this._wishesService.create(req.user, {
         name,
         link,
         image,
@@ -74,7 +76,7 @@ export class WishesController {
     @Req() req,
     @Param('id') id: string,
     @Body() updateWishDto: UpdateWishDto,
-  ) {
+  ): Promise<void> {
     const wish = await this._wishesService.findOne(parseInt(id));
     if (wish.owner.id === req.user.id) {
       await this._wishesService.updateWish(parseInt(id), updateWishDto);
@@ -86,7 +88,7 @@ export class WishesController {
 
   @UseGuards(JwtGuard)
   @Delete(':id')
-  public async remove(@Req() req, @Param('id') id: string) {
+  public async remove(@Req() req, @Param('id') id: string): Promise<Wish> {
     const wish = await this._wishesService.findOne(parseInt(id));
     if (wish.owner.id === req.user.id) {
       await this._wishesService.remove(parseInt(id));
@@ -94,10 +96,5 @@ export class WishesController {
     } else {
       throw new ForbiddenException();
     }
-  }
-
-  @Get()
-  findAll() {
-    return this._wishesService.findAll();
   }
 }

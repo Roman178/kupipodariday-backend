@@ -18,7 +18,6 @@ export class CreateUserDto {
   @MaxLength(200)
   public about: string;
 
-  // @IsOptional()
   @IsUrl()
   @ValidateIf((user) => !!user.avatar)
   public avatar: string;
