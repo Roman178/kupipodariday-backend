@@ -11,28 +11,28 @@ import { Wishlist } from './entities/wishlist.entity';
 export class WishlistsService {
   constructor(
     @InjectRepository(Wishlist)
-    private readonly _wishlistsRepository: Repository<Wishlist>,
-    private readonly _wishesService: WishesService,
+    private readonly wishlistsRepository: Repository<Wishlist>,
+    private readonly wishesService: WishesService,
   ) {}
 
   public async create(user: User, createWishlistDto: CreateWishlistDto) {
-    const wishes = await this._wishesService.find({
+    const wishes = await this.wishesService.find({
       where: { id: In(createWishlistDto.itemsId || []) },
     });
-    const wishlist = this._wishlistsRepository.create({
+    const wishlist = this.wishlistsRepository.create({
       ...createWishlistDto,
       owner: user,
       items: wishes,
     });
-    return this._wishlistsRepository.save(wishlist);
+    return this.wishlistsRepository.save(wishlist);
   }
 
   public async findAll(): Promise<Wishlist[]> {
-    return this._wishlistsRepository.find({ relations: ['items', 'owner'] });
+    return this.wishlistsRepository.find({ relations: ['items', 'owner'] });
   }
 
   public async findOne(id: number): Promise<Wishlist> {
-    return this._wishlistsRepository.findOne({
+    return this.wishlistsRepository.findOne({
       where: { id },
       relations: ['items', 'owner'],
     });
@@ -42,10 +42,10 @@ export class WishlistsService {
     id: number,
     updateWishlistDto: UpdateWishlistDto,
   ): Promise<any> {
-    return this._wishlistsRepository.update(id, updateWishlistDto);
+    return this.wishlistsRepository.update(id, updateWishlistDto);
   }
 
   public async remove(id: number): Promise<any> {
-    return this._wishlistsRepository.delete(id);
+    return this.wishlistsRepository.delete(id);
   }
 }

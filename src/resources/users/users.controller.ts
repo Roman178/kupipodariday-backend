@@ -22,20 +22,20 @@ import { Wish } from '../wishes/entities/wish.entity';
 @Controller('users')
 export class UsersController {
   constructor(
-    private readonly _usersService: UsersService,
-    private readonly _wishesService: WishesService,
+    private readonly usersService: UsersService,
+    private readonly wishesService: WishesService,
   ) {}
 
   @UseGuards(JwtGuard)
   @Get('me')
   public findMe(@Req() req): Promise<User> {
-    return this._usersService.findById(req.user.id, { withEmail: true });
+    return this.usersService.findById(req.user.id, { withEmail: true });
   }
 
   @UseGuards(JwtGuard)
   @Get('me/wishes')
   public async findMyWishes(@Req() req): Promise<Wish[]> {
-    return this._wishesService.findWishesByUserId(req.user.id);
+    return this.wishesService.findWishesByUserId(req.user.id);
   }
 
   @UseGuards(JwtGuard)
@@ -43,8 +43,8 @@ export class UsersController {
   public async findUserWishes(
     @Param('username') username: string,
   ): Promise<Wish[]> {
-    const user = await this._usersService.findByUsername(username);
-    return this._wishesService.findWishesByUserId(user.id);
+    const user = await this.usersService.findByUsername(username);
+    return this.wishesService.findWishesByUserId(user.id);
   }
 
   @UseGuards(JwtGuard)
@@ -54,21 +54,21 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     updateUserDto.password
-      ? await this._usersService.updateWithPassword(req.user.id, updateUserDto)
-      : await this._usersService.update(req.user.id, updateUserDto);
+      ? await this.usersService.updateWithPassword(req.user.id, updateUserDto)
+      : await this.usersService.update(req.user.id, updateUserDto);
 
-    return this._usersService.findById(req.user.id, { withEmail: true });
+    return this.usersService.findById(req.user.id, { withEmail: true });
   }
 
   @Post('find')
   public async findMany(@Body() findUsersDto: FindUsersDto): Promise<User[]> {
-    return this._usersService.findMany(findUsersDto);
+    return this.usersService.findMany(findUsersDto);
   }
 
   @UseGuards(JwtGuard)
   @Get(':username')
   public async findOne(@Param('username') username: string): Promise<User> {
-    const user = await this._usersService.findByUsername(username);
+    const user = await this.usersService.findByUsername(username);
     if (!user) {
       throw new NotFoundException();
     }

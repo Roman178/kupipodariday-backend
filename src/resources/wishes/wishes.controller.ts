@@ -19,17 +19,17 @@ import { Wish } from './entities/wish.entity';
 
 @Controller('wishes')
 export class WishesController {
-  constructor(private readonly _wishesService: WishesService) {}
+  constructor(private readonly wishesService: WishesService) {}
 
   @Get('top')
   public async findTop(): Promise<Wish[]> {
-    const topWishes = await this._wishesService.findTop();
+    const topWishes = await this.wishesService.findTop();
     return topWishes;
   }
 
   @Get('last')
   public async findLast(): Promise<Wish[]> {
-    const lastWishes = await this._wishesService.findLast();
+    const lastWishes = await this.wishesService.findLast();
     return lastWishes;
   }
 
@@ -39,13 +39,13 @@ export class WishesController {
     @Req() req,
     @Body() createWishDto: CreateWishDto,
   ): Promise<Wish> {
-    return this._wishesService.create(req.user, createWishDto);
+    return this.wishesService.create(req.user, createWishDto);
   }
 
   @UseGuards(JwtGuard)
   @Get(':id')
   public async findOne(@Param('id') id: string): Promise<Wish> {
-    const wish = await this._wishesService.findOne(parseInt(id));
+    const wish = await this.wishesService.findOne(parseInt(id));
     if (!wish) {
       throw new NotFoundException();
     }
@@ -55,11 +55,11 @@ export class WishesController {
   @UseGuards(JwtGuard)
   @Post(':id/copy')
   public async copyWishToMe(@Req() req, @Param('id') id: string): Promise<any> {
-    const wish = await this._wishesService.findOne(parseInt(id));
-    await this._wishesService.updateWish(wish.id, { copied: ++wish.copied });
+    const wish = await this.wishesService.findOne(parseInt(id));
+    await this.wishesService.updateWish(wish.id, { copied: ++wish.copied });
     if (wish.owner.id !== req.user.id) {
       const { name, link, image, price, description } = wish;
-      await this._wishesService.create(req.user, {
+      await this.wishesService.create(req.user, {
         name,
         link,
         image,
@@ -77,9 +77,9 @@ export class WishesController {
     @Param('id') id: string,
     @Body() updateWishDto: UpdateWishDto,
   ): Promise<void> {
-    const wish = await this._wishesService.findOne(parseInt(id));
+    const wish = await this.wishesService.findOne(parseInt(id));
     if (wish.owner.id === req.user.id) {
-      await this._wishesService.updateWish(parseInt(id), updateWishDto);
+      await this.wishesService.updateWish(parseInt(id), updateWishDto);
       return;
     } else {
       throw new ForbiddenException();
@@ -89,9 +89,9 @@ export class WishesController {
   @UseGuards(JwtGuard)
   @Delete(':id')
   public async remove(@Req() req, @Param('id') id: string): Promise<Wish> {
-    const wish = await this._wishesService.findOne(parseInt(id));
+    const wish = await this.wishesService.findOne(parseInt(id));
     if (wish.owner.id === req.user.id) {
-      await this._wishesService.remove(parseInt(id));
+      await this.wishesService.remove(parseInt(id));
       return wish;
     } else {
       throw new ForbiddenException();

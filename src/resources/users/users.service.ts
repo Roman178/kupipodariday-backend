@@ -15,17 +15,17 @@ import { FindUsersDto } from './dto/find-users.dto';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User) private readonly _usersRepository: Repository<User>,
+    @InjectRepository(User) private readonly usersRepository: Repository<User>,
   ) {}
 
   public async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const passwordHash = await bcrypt.hash(createUserDto.password, 10);
-      const user = this._usersRepository.create({
+      const user = this.usersRepository.create({
         ...createUserDto,
         password: passwordHash,
       });
-      const savedUser = await this._usersRepository.save(user);
+      const savedUser = await this.usersRepository.save(user);
       console.log(user);
       console.log(savedUser);
       return user;
@@ -45,12 +45,12 @@ export class UsersService {
     }: { withPassword?: boolean; withEmail?: boolean } = {},
   ): Promise<User> {
     if (withPassword || withEmail) {
-      return this._findUserAddUnselectedFields(id, 'id', {
+      return this.findUserAddUnselectedFields(id, 'id', {
         withEmail,
         withPassword,
       });
     } else {
-      return this._usersRepository.findOneBy({ id });
+      return this.usersRepository.findOneBy({ id });
     }
   }
 
@@ -62,24 +62,24 @@ export class UsersService {
     }: { withPassword?: boolean; withEmail?: boolean } = {},
   ): Promise<User> {
     if (withPassword || withEmail) {
-      return this._findUserAddUnselectedFields(username, 'username', {
+      return this.findUserAddUnselectedFields(username, 'username', {
         withEmail,
         withPassword,
       });
     } else {
-      return this._usersRepository.findOneBy({ username });
+      return this.usersRepository.findOneBy({ username });
     }
   }
 
   public async findMany({ query }: FindUsersDto): Promise<User[]> {
-    const users = await this._usersRepository.find({
+    const users = await this.usersRepository.find({
       where: [{ email: query }, { username: query }],
     });
     return users;
   }
 
   public async findInIdsWithEmail(ids: number[]): Promise<User[]> {
-    return this._usersRepository
+    return this.usersRepository
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
@@ -89,7 +89,7 @@ export class UsersService {
   }
 
   public async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
-    return this._usersRepository.update(id, updateUserDto);
+    return this.usersRepository.update(id, updateUserDto);
   }
 
   public async updateWithPassword(
@@ -97,18 +97,18 @@ export class UsersService {
     updateUserDto: UpdateUserDto,
   ): Promise<any> {
     const passwordHash = await bcrypt.hash(updateUserDto.password, 10);
-    return await this._usersRepository.update(id, {
+    return await this.usersRepository.update(id, {
       ...updateUserDto,
       password: passwordHash,
     });
   }
 
-  private async _findUserAddUnselectedFields(
+  private async findUserAddUnselectedFields(
     value: string | number,
     columnName: 'username' | 'id',
     options: { withPassword: boolean; withEmail: boolean },
   ): Promise<User> {
-    let queryBuilder = this._usersRepository
+    let queryBuilder = this.usersRepository
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
