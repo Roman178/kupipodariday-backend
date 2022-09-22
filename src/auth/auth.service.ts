@@ -7,20 +7,20 @@ import { UsersService } from 'src/resources/users/users.service';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly _jwtService: JwtService,
-    private readonly _usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
   ) {}
 
   public auth(user: User): { access_token: string } {
     const payload = { sub: user.id };
-    return { access_token: this._jwtService.sign(payload) };
+    return { access_token: this.jwtService.sign(payload) };
   }
 
   public async validatePassword(username: string, password: string) {
-    // const user = await this._usersService.findByUsername(username, true);
-    const user = await this._usersService.findByUsername(username, {
+    const user = await this.usersService.findByUsername(username, {
       withPassword: true,
     });
+    // TODO: отдельный хэлпер или сервис по хэшированию пароля
     const passwordIsMatch = await bcrypt.compare(password, user.password);
     if (user && passwordIsMatch) {
       const { password, ...result } = user;

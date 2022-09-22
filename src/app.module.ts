@@ -12,29 +12,28 @@ import { OffersModule } from './resources/offers/offers.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailSenderModule } from './email-sender/email-sender.module';
-import configuration from './config/configuration';
+import configs from './config/configuration';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'student',
-      password: 'student',
-      database: 'kupipodariday',
+      host: configs().db.host,
+      port: configs().db.port,
+      username: configs().db.username,
+      password: configs().db.password,
+      database: configs().db.databaseName,
       entities: [User, Wish, Wishlist, Offer],
       synchronize: true,
     }),
     ConfigModule.forRoot({
-      load: [configuration],
+      load: [configs],
     }),
     UsersModule,
     WishesModule,
     WishlistsModule,
     OffersModule,
     AuthModule,
-    EmailSenderModule,
     EmailSenderModule,
   ],
   controllers: [AppController],

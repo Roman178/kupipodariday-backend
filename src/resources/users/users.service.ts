@@ -25,7 +25,9 @@ export class UsersService {
         ...createUserDto,
         password: passwordHash,
       });
-      await this._usersRepository.save(user);
+      const savedUser = await this._usersRepository.save(user);
+      console.log(user);
+      console.log(savedUser);
       return user;
     } catch (error) {
       if (error.code === ErrorCodesEnum.DUPLICATE_KEY) {

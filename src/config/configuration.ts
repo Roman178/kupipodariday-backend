@@ -1,10 +1,20 @@
 export default () => ({
-  // port: parseInt(process.env.PORT, 10) || 3000,
-  // database: {
-  //   host: process.env.DATABASE_HOST,
-  //   port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
-  // },
+  port: parseInt(process.env.PORT) || 3000,
+  db: {
+    type: 'postgres',
+    host: process.env.DATABASE_HOST || 'localhost',
+    port: parseInt(process.env.DATABASE_PORT) || 5432,
+    username: 'student',
+    password: 'student',
+    databaseName: 'kupipodariday',
+  },
   jwtSecret: 'jwtSecret',
-  emailYandex: 'VasTopVas@yandex.ru',
-  passwordEmailYandex: 'psqrvrudhxjvqwnk',
+  emailDistributionSMTPT: {
+    email: 'VasTopVas@yandex.ru',
+    password: 'psqrvrudhxjvqwnk',
+    host: 'smtp.yandex.ru',
+    port: 465,
+    testHost: 'smtp.ethereal.email',
+    testPort: 587,
+  },
 });

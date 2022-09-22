@@ -6,36 +6,35 @@ import { Wish } from 'src/resources/wishes/entities/wish.entity';
 
 @Injectable()
 export class EmailSenderService implements OnModuleInit {
-  private _transporter: Transporter<SentMessageInfo>;
-  private _testEmailAccount: any;
+  private transporter: Transporter<SentMessageInfo>;
+  private testEmailAccount: any;
 
-  constructor(private readonly _configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   public async onModuleInit(): Promise<void> {
-    this._testEmailAccount = await createTestAccount();
-    this._transporter = createTransport({
-      // host: 'smtp.yandex.ru',
-      // port: 465,
+    this.testEmailAccount = await createTestAccount();
+    this.transporter = createTransport({
+      // host: this.configService.get('emailDistributionSMTPT.host'),
+      // port: this.configService.get('emailDistributionSMTPT.port'),
       // secure: true,
-      host: 'smtp.ethereal.email',
-      port: 587,
+      host: this.configService.get('emailDistributionSMTPT.testHost'),
+      port: this.configService.get('emailDistributionSMTPT.testPort'),
       secure: false,
       auth: {
-        // Яндекс родной заблочил на сутки за исходящий спам.
-        // user: this._configService.get<string>('emailYandex'),
-        // pass: this._configService.get<string>('passwordEmailYandex'),
-        user: this._testEmailAccount.user,
-        pass: this._testEmailAccount.pass,
+        // user: this.configService.get('emailDistributionSMTPT.email'),
+        // pass: this.configService.get('emailDistributionSMTPT.password'),
+        user: this.testEmailAccount.user,
+        pass: this.testEmailAccount.pass,
       },
     });
   }
 
   public async sendEmail(wish: Wish, to: string[]) {
-    const result = await this._transporter.sendMail({
-      from: `КупиПодариДай Сервис <${this._configService.get<string>(
+    const result = await this.transporter.sendMail({
+      from: `КупиПодариДай Сервис <${this.configService.get<string>(
         'emailYandex',
       )}>`,
-      to: ['ismagilov771@gmail.com', 'ismagilov_roman@mail.ru'],
+      to,
       subject: 'Собрали денег на подарок',
       text: 'Собрали денег на подарок',
       html: `

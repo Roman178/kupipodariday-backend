@@ -13,17 +13,17 @@ import { Offer } from './entities/offer.entity';
 export class OffersService {
   constructor(
     @InjectRepository(Offer)
-    private readonly _offersRepository: Repository<Offer>,
-    private readonly _wishesService: WishesService,
-    private readonly _usersService: UsersService,
-    private readonly _emailSenderService: EmailSenderService,
+    private readonly offersRepository: Repository<Offer>,
+    private readonly wishesService: WishesService,
+    private readonly usersService: UsersService,
+    private readonly emailSenderService: EmailSenderService,
   ) {}
 
   public async createOffer(
     user: User,
     createOfferDto: CreateOfferDto,
   ): Promise<Offer> {
-    const wish = await this._wishesService.findOne(createOfferDto.itemId);
+    const wish = await this.wishesService.findOne(createOfferDto.itemId);
     if (user.id === wish.owner.id) {
       throw new BadRequestException('Нельзя скидываться себе на подарки');
     }
@@ -32,23 +32,21 @@ export class OffersService {
         'Предложена большая сумма. Уменьшите сумму.',
       );
     }
-    await this._wishesService.updateWish(wish.id, {
+    await this.wishesService.updateWish(wish.id, {
       raised: wish.raised + createOfferDto.amount,
     });
-    const offer = this._offersRepository.create({
+    const offer = this.offersRepository.create({
       ...createOfferDto,
       user,
       item: wish,
     });
-    const savedOffer = await this._offersRepository.save(offer);
-    const updatedWish = await this._wishesService.findOne(
-      createOfferDto.itemId,
-    );
+    const savedOffer = await this.offersRepository.save(offer);
+    const updatedWish = await this.wishesService.findOne(createOfferDto.itemId);
     if (updatedWish.raised === updatedWish.price) {
-      const usersWithEmails = await this._usersService.findInIdsWithEmail(
+      const usersWithEmails = await this.usersService.findInIdsWithEmail(
         updatedWish.offers.map((offer) => offer.user.id),
       );
-      await this._emailSenderService.sendEmail(
+      await this.emailSenderService.sendEmail(
         updatedWish,
         usersWithEmails.map((user) => user.email),
       );
@@ -57,11 +55,11 @@ export class OffersService {
   }
 
   public async findAll(): Promise<Offer[]> {
-    return this._offersRepository.find({ relations: ['item', 'user'] });
+    return this.offersRepository.find({ relations: ['item', 'user'] });
   }
 
   public async findOne(id: number): Promise<Offer> {
-    return this._offersRepository.findOne({
+    return this.offersRepository.findOne({
       where: { id },
       relations: ['item', 'user'],
     });
@@ -71,10 +69,10 @@ export class OffersService {
     id: number,
     updateOfferDto: UpdateOfferDto,
   ): Promise<any> {
-    return this._offersRepository.update(id, updateOfferDto);
+    return this.offersRepository.update(id, updateOfferDto);
   }
 
   public async remove(id: number): Promise<any> {
-    return this._offersRepository.delete(id);
+    return this.offersRepository.delete(id);
   }
 }
